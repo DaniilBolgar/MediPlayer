@@ -1,0 +1,2 @@
+rootProject.name='MediPlayer'
+include ':app'
