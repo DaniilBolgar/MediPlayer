@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
@@ -14,6 +15,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,28 +26,40 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar positionBar;
     private MediaPlayer mp;
     private int totalTime;
+    private TextView timeLeft;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle("");
         play = findViewById(R.id.playbutton);
         positionBar = findViewById(R.id.seekBar);
+        timeLeft = findViewById(R.id.remainingTime);
+        Intent intent = getIntent();
+
+        //create string parameter for every element
+        String songName = intent.getStringExtra("song_name");
+        TextView txt_songName = findViewById(R.id.trackTitle_p);
+        txt_songName.setText(songName);
+        String imageLink = intent.getStringExtra("track_image");
+        ImageView img_trackImage = findViewById(R.id.songImage_p);
+        Glide.with(this).load(imageLink).centerCrop().into(img_trackImage);
+
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        toolbar.setTitle("");
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(!mp.isPlaying()){
                     mp.start();
-                    play.setBackgroundResource(R.drawable.pause);
+                    Glide.with(getApplicationContext()).load(R.drawable.pause).centerCrop().into(play);
                 }
                 else{
                     mp.pause();
-                    play.setBackgroundResource(R.drawable.play);
+                    Glide.with(getApplicationContext()).load(R.drawable.play).centerCrop().into(play);
                 }
             }
         });
@@ -97,6 +113,8 @@ public class MainActivity extends AppCompatActivity {
         public void handleMessage(Message msg){
             int currentPosition = msg.what;
             positionBar.setProgress(currentPosition);
+            String remTime = createTimeLabel(totalTime-currentPosition);
+            timeLeft.setText("- " + remTime);
         }
     };
 
@@ -106,5 +124,16 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+    public String createTimeLabel(int time) {
+        String timeLabel = "";
+        int min = time / 1000 / 60;
+        int sec = time / 1000 % 60;
+
+        timeLabel = min + ":";
+        if (sec < 10) timeLabel += "0";
+        timeLabel += sec;
+
+        return timeLabel;
     }
 }
